@@ -343,6 +343,7 @@ function getCookieName()
 										<option value="4">其它</option>
 										<option value="1">百度</option>
 										<option value="2">神马</option>
+										<option value="5">神马2</option>
 										<option value="3">360</option>
 									</select>
 									&nbsp;&nbsp;
@@ -383,6 +384,7 @@ function getCookieName()
 										<option value="-1">全部</option>
 										<option value="1">百度</option>
 										<option value="2">神马</option>
+										<option value="5">神马2</option>
 										<option value="3">360</option>
 										<option value="4">其它</option>
 									</select>

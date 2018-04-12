@@ -421,6 +421,7 @@ function getCookieName()
 										<option value="-1">全部</option>
 										<option value="1">百度</option>
 										<option value="2">神马</option>
+										<option value="5">神马2</option>
 										<option value="3">360</option>
 										<option value="4">其它</option>
 									</select>
@@ -474,6 +475,7 @@ function getCookieName()
 										<option value="-1">全部</option>
 										<option value="1">百度</option>
 										<option value="2">神马</option>
+										<option value="5">神马2</option>
 										<option value="3">360</option>
 										<option value="4">其它</option>
 									</select>
@@ -487,7 +489,7 @@ function getCookieName()
 								<br/>
 								<table class="table table-bordered table-striped no-margin grd_tble">
 									<thead>
-										<tr> <th>组别</th> <th>ID</th> <th>名字</th> <th>电话</th> <th>微信号</th> <th>状态</th> <th>描述</th> <th>来源</th> <th>时间</th> </tr>
+										<tr> <th>组别</th> <th>ID</th> <th>名字</th> <th>电话</th> <th>微信号</th> <th>状态</th> <th>描述</th> <th>操作中</th> <th>来源</th> <th>时间</th> </tr>
 									</thead>
 
 									<tbody id="batch_table_tbody">

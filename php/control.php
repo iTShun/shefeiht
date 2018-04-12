@@ -108,8 +108,19 @@ function source_convert($source)
 		case '4':
 			return '其它';
 			break;
+
+		case '5':
+			return '神马2';
+			break;
 	}
 	return '0';
+}
+
+function control_convert($control, $str)
+{
+	if (strstr($control, $str))
+		return '是';
+	return '否';
 }
 
 function pagination($curPage, $tableSize, $postion, $pageMax, $append = '{}')
@@ -744,8 +755,8 @@ switch ($c_id)
 				$resultDatas['html'] = '';
 				$resultDatas['page'] = '';
 
-				$temp = '<td>%u_gid%</td> <td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_status%</td> <td>%u_desc%</td> <td>%u_source%</td> <td>%u_time%</td>';
-				$ec = array('%u_gid%', '%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_status%', '%u_desc%', '%u_source%', '%u_time%');
+				$temp = '<td>%u_gid%</td> <td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_status%</td> <td>%u_desc%</td> <td>%u_control%</td> <td>%u_source%</td> <td>%u_time%</td>';
+				$ec = array('%u_gid%', '%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_status%', '%u_desc%', '%u_control%', '%u_source%', '%u_time%');
 
 				if ($control && $control == 1)
 				{
@@ -786,7 +797,7 @@ switch ($c_id)
 							if ($user_datas && is_array($user_datas))
 								$name = '-' . $user_datas['name'];
 
-							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['g_id'] . $name, $datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['desc'], $datas['source'], $datas['time']), $temp);
+							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['g_id'] . $name, $datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['desc'], control_convert($datas['control'], $datas['g_id']), $datas['source'], $datas['time']), $temp);
 						}
 
 						$resultDatas['html'] = $resultDatas['html'] . '</tr> ';
