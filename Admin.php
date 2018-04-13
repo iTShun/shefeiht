@@ -112,7 +112,7 @@ function getCookieName()
 				                		</a>
 				                	</li>
 				                	<li>
-				                		<a id="batch_table" href="#">
+				                		<a id="batch_table" href="ExploitTable.php">
 				                			<i class="fa fa-angle-right"></i>
 				                			<span>已开发表</span>
 				                		</a>

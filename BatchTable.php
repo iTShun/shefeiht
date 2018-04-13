@@ -341,7 +341,7 @@ function getCookieName()
 				                		</a>
 				                	</li>
 				                	<li>
-				                		<a id="batch_table" href="#">
+				                		<a id="batch_table" href="ExploitTable.php">
 				                			<i class="fa fa-angle-right"></i>
 				                			<span>已开发表</span>
 				                		</a>
@@ -435,7 +435,7 @@ function getCookieName()
 									<br/><br/>
 									<table class="table table-bordered table-striped no-margin grd_tble">
 										<thead>
-											<tr> <th>ID</th> <th>名字</th> <th>电话</th> <th>微信号</th> <th>状态</th> <th>来源</th> <th>时间</th> <th>发布<h5><input type="checkbox" onchange="select_all(this);" >一键添加</h5></th> </tr>
+											<tr> <th>ID</th> <th>名字</th> <th>电话</th> <th>微信号</th> <th>状态</th> <th>已操作组</th> <th>来源</th> <th>时间</th> <th>发布<h5><input type="checkbox" onchange="select_all(this);" >一键添加</h5></th> </tr>
 										</thead>
 
 										<tbody id="total_table_tbody">

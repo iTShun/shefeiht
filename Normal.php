@@ -194,7 +194,6 @@ function getCookieName()
 	{
 		if (obj)
 		{
-			alert(obj);
 			var strs = obj.name.split('_');
 
 			if (!updateField_c[ strs[0] ])

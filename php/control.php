@@ -5,6 +5,7 @@ require_once 'Medoo.php';
 require_once 'CUserTotal.php';
 require_once 'CTotalTable.php';
 require_once 'CBatchTable.php';
+require_once 'CExploitTable.php';
 
 // Using Medoo namespace
 use Medoo\Medoo;
@@ -15,6 +16,7 @@ date_default_timezone_set('Asia/Shanghai');
 $app['user_total'] = new UserTotal();
 $app['total_table'] = new TotalTable();
 $app['batch_table'] = new BatchTable();
+$app['exploit_table'] = new ExploitTable();
 
 $c_id = $app['hint']['isset']($_GET, 'c_id');
 $u_id = $app['hint']['isset']($_GET, 'u_id');
@@ -508,8 +510,8 @@ switch ($c_id)
 
 				if ($isBatch)
 				{
-					$temp = '<td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_status%</td> <td>%u_source%</td> <td>%u_time%</td> <td>%c_name%</td>';
-					$ec = array('%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_status%', '%u_source%', '%u_time%', '%c_name%');
+					$temp = '<td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_status%</td> <td>%u_control%</td> <td>%u_source%</td> <td>%u_time%</td> <td>%c_name%</td>';
+					$ec = array('%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_status%', '%u_control%', '%u_source%', '%u_time%', '%c_name%');
 				}
 
 				for ($i=$index, $j=0; $j < $table_show_num - $failoverIndex; $i++, $j++)
@@ -522,16 +524,18 @@ switch ($c_id)
 
 						if ($isBatch)
 						{
+							$batch_datas = $app['batch_table']->check(array('u_id' => $datas['u_id']), 'control');
+							$control = $app['hint']['isset']($batch_datas, 0);
 							if ($datas['status'] == 0)
 							{
 								$c_name = '<input type="checkbox" name="' . $datas['u_id'] . '">&nbsp;添加';
-								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['source'], $datas['time'], $c_name), $temp);
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $control, $datas['source'], $datas['time'], $c_name), $temp);
 							}
 							else
 							{
 								$c_name = '已添加';
 
-								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['source'], $datas['time'], $c_name), $temp);
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $control, $datas['source'], $datas['time'], $c_name), $temp);
 							}
 						}
 						else
@@ -872,11 +876,35 @@ switch ($c_id)
 
 				if ($status && is_array($status))
 				{
+					$time = date("Y-m-d H:i:s");
 					foreach ($status as $key => $value) 
 					{
 						$app['batch_table']->update(array("status" => ($value - 1)), array("u_id" => $key));
 
 						$app['total_table']->update(array("status" => ($value - 1)), array("u_id" => $key));
+
+						if (($value - 1) == 2)
+						{
+							$batch_datas = $app['batch_table']->check(array("u_id" => $key));
+
+							if (is_array($batch_datas) && isset($batch_datas[0]))
+							{
+								//已开发
+								$app['exploit_table']->insert(array(
+									'u_id' => $batch_datas[0]['u_id'],
+									'g_id' => $batch_datas[0]['g_id'],
+									'e_name' => '',
+									'name' => $batch_datas[0]['name'],
+									'phone' => $batch_datas[0]['phone'],
+									'wechat' => $batch_datas[0]['wechat'],
+									'addr' => '',
+									'control' => $batch_datas[0]['control'],
+									'source' => $batch_datas[0]['source'],
+									'time' => $time
+								));
+							}
+							
+						}
 					}
 
 					$result = '修改内容成功!';
@@ -893,6 +921,141 @@ switch ($c_id)
 				}
 
 				echo $result;
+			}
+		}
+		break;
+
+	case 'getexploittable':
+		{
+			if (isset($_POST['index']))
+			{
+				$table_show_num = $app['table_show_count'];
+
+				$index = $_POST['index'] - 1;
+				$search_datas = null;
+				
+				$u_id = $app['hint']['isset']($_POST, 'u_id');
+				$name = $app['hint']['isset']($_POST, 'name');
+				$phone = $app['hint']['isset']($_POST, 'phone');
+				$wechat = $app['hint']['isset']($_POST, 'wechat');
+				$source = $app['hint']['isset']($_POST, 'source');
+				$start_date = $app['hint']['isset']($_POST, 'start_date');
+				$start_time = $app['hint']['isset']($_POST, 'start_time');
+				$end_date = $app['hint']['isset']($_POST, 'end_date');
+				$end_time = $app['hint']['isset']($_POST, 'end_time');
+				$append = '{';
+
+				$selectArr = array();
+
+				$selectArr['ORDER'] = array("time" => "DESC");
+
+				if ($source && $source != -1)
+				{
+					if ($append == '{')
+						$append = $append . 'source:' . $source;
+					else
+						$append = $append . ',source:' . $source;
+
+					$selectArr['source'] = source_convert($source);
+				}
+
+				if ($start_date && $start_time)
+				{
+					if ($append == '{')
+					{
+						$append = $append . "start_date:'" . $start_date . "'";
+						$append = $append . ",start_time:'" . $start_time . "'";
+					}
+					else
+					{
+						$append = $append . ",start_date:'" . $start_date . "'";
+						$append = $append . ",start_time:'" . $start_time . "'";
+					}
+
+					$selectArr['time[>=]'] = $start_date . ' ' . $start_time;
+				}
+
+				if ($end_date && $end_time)
+				{
+					if ($append == '{')
+					{
+						$append = $append . "end_date:'" . $end_date . "'";
+						$append = $append . ",end_time:'" . $end_time . "'";
+					}
+					else
+					{
+						$append = $append . ",end_date:'" . $end_date . "'";
+						$append = $append . ",end_time:'" . $end_time . "'";
+					}
+
+					$selectArr['time[<=]'] = $end_date . ' ' . $end_time;
+				}
+
+				$data_datas = $app['exploit_table']->check($selectArr);
+
+				if ($append == '{')
+					$append = $append . 'pageType:4 }';
+				else
+					$append = $append . ', pageType:4 }';
+
+				if ($u_id)
+					$search_datas = $app['exploit_table']->check(array('u_id'=>$u_id));
+				else if ($name)
+					$search_datas = $app['exploit_table']->check(array('name'=>$name));
+				else if ($phone)
+					$search_datas = $app['exploit_table']->check(array('phone'=>$phone));
+				else if ($wechat)
+					$search_datas = $app['exploit_table']->check(array('wechat'=>$wechat));
+				
+				$failoverIndex = 0;
+				$dbSize = count($data_datas);
+
+				if (is_array($search_datas))
+				{
+					$arr = $app['hint']['in_array']($search_datas[0]['u_id'], $data_datas);
+
+					if (is_array($arr))
+						$index = $arr[0];
+					else
+						$index =0;
+
+					$failoverIndex = $index % $table_show_num;
+				}
+
+				if ($index < 0 || $index > $dbSize)
+					$index = 0;
+
+				$resultDatas = array();
+				$resultDatas['html'] = '';
+				$resultDatas['page'] = '';
+
+				$temp = '<td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td>%u_desc%</td> <td>%u_source%</td> <td>%u_time%</td>';
+				$ec = array('%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_source%', '%u_time%');
+
+				for ($i=$index, $j=0; $j < $table_show_num - $failoverIndex; $i++, $j++)
+				{
+					if (isset($data_datas[$i]) && is_array($data_datas[$i]))
+					{
+						$datas = $data_datas[$i];
+
+						$resultDatas['html'] = $resultDatas['html'] . '<tr>';
+
+						$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], count(explode(',', $datas['control'])), $datas['source'], $datas['time']), $temp);
+
+						$resultDatas['html'] = $resultDatas['html'] . '</tr> ';
+					}
+				}
+
+				$curPage = ($index / $table_show_num + 1) | 0;
+				if ($curPage <= 0)
+					$curPage = 1;
+
+				$pos = isset($_POST['pos']) ? $_POST['pos'] : '';
+				$pageMax = ceil($dbSize / $table_show_num);
+
+				$resultDatas['page'] = pagination($curPage, $dbSize, $pos, $pageMax, $append);
+				
+				echo json_encode($resultDatas);
 			}
 		}
 		break;
