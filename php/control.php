@@ -508,8 +508,8 @@ switch ($c_id)
 
 				if ($isBatch)
 				{
-					$temp = '<td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_status%</td> <td>%u_desc%</td> <td>%u_source%</td> <td>%c_name%</td>';
-					$ec = array('%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_status%', '%u_desc%', '%u_source%', '%c_name%');
+					$temp = '<td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_status%</td> <td>%u_source%</td> <td>%u_time%</td> <td>%c_name%</td>';
+					$ec = array('%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_status%', '%u_source%', '%u_time%', '%c_name%');
 				}
 
 				for ($i=$index, $j=0; $j < $table_show_num - $failoverIndex; $i++, $j++)
@@ -525,13 +525,13 @@ switch ($c_id)
 							if ($datas['status'] == 0)
 							{
 								$c_name = '<input type="checkbox" name="' . $datas['u_id'] . '">&nbsp;添加';
-								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['desc'], $datas['source'], $c_name), $temp);
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['source'], $datas['time'], $c_name), $temp);
 							}
 							else
 							{
 								$c_name = '已添加';
 
-								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['desc'], $datas['source'], $c_name), $temp);
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], status_convert($datas['status']), $datas['source'], $datas['time'], $c_name), $temp);
 							}
 						}
 						else
