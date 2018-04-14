@@ -118,11 +118,11 @@ class UserTotal
 				break;
 
 			case '2':
-				return 'Office';
+				return 'Normal';
 				break;
 
 			case '3':
-				return 'Normal';
+				return 'Office';
 				break;
 			
 			default:

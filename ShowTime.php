@@ -66,63 +66,15 @@ function getCookieName()
 
 <script>
 
-	var updateField_c = {};
-
 	function getUrlParam(name) {
     	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
        	var r = window.location.search.substr(1).match(reg);
        	if (r != null) return unescape(r[2]); return null;
     }
 
-	function select_all(obj)
-	{
-		if (obj)
-		{
-			$("input[type='checkbox']").each(function() {  
-                this.checked = obj.checked;
-            });
-		}
-	}
-
-	function select_search_status(status)
-	{
-		if (status == 1)
-		{
-			document.getElementsByName('search_start_pickdate')[0].value=getDate({ date:1, datesub:7 });
-		}
-		else
-		{
-			document.getElementsByName('search_start_pickdate')[0].value=getDate({ date:1, datesub:31 });
-		}
-		document.getElementsByName('search_start_picktime')[0].value="00:00";
-	}
-
-    function search_batchtable_new(index, datas = {})
-	{
-		var arr = { c_id:'getbatchtable', pos:'#headingOne', index:index, control:1 };
-
-		if (datas.hasOwnProperty('g_id'))
-			arr['g_id'] = datas['g_id'];
-		
-		$.post('php/control.php', arr, function(msg){
-			if (msg == 0)
-				alert('无内容!');
-			else
-			{
-				//alert(JSON.stringify(msg.page));
-				$("#batch_table_new_tbody").html(msg.html);
-				$("#batch_table_new_tfoot").html(msg.page);
-			}
-		},
-		'json');
-
-		return true;
-	}
-
-	function search_batchtable(index, datas = {})
+	function search_exploittable(index, datas = {})
 	{
 		if (index == 0 &&
-			!datas.hasOwnProperty('status') &&
 			!datas.hasOwnProperty('start_date') &&
 			!datas.hasOwnProperty('start_time') &&
 			!datas.hasOwnProperty('end_date') &&
@@ -132,10 +84,7 @@ function getCookieName()
 			return false;
 		}
 		
-		var arr = { c_id:'getbatchtable', pos:'#headingTwo', index:index, control:2 };
-		
-		if (datas.hasOwnProperty('status'))
-			arr['status'] = datas['status'];
+		var arr = { c_id:'getexploittable', pos:'#headingOne', index:index, control:1 };
 
 		if (datas.hasOwnProperty('start_date'))
 			arr['start_date'] = datas['start_date'];
@@ -173,55 +122,17 @@ function getCookieName()
 
 		if (page == 1)
 		{
-			if (pageType == 2)
-				search_batchtable(1, datas);
-			else if (pageType == 3)
-				search_batchtable_new(1, datas);
+			if (pageType == 4)
+				search_exploittable(1, datas);
 		}
 		else
 		{
 			var table_show_num = <?php echo $app['table_show_count']; ?>;
 			var index = (page - 1) * table_show_num + 1;
 
-			if (pageType == 2)
-				search_batchtable(index, datas);
-			else if (pageType == 3)
-				search_batchtable_new(index, datas);
+			if (pageType == 4)
+				search_exploittable(index, datas);
 		}
-	}
-
-	function updateField(obj)
-	{
-		if (obj)
-		{
-			var strs = obj.name.split('_');
-
-			if (!updateField_c[ strs[0] ])
-				updateField_c[ strs[0] ] = {};
-
-			updateField_c[ strs[0] ][ strs[1] ] = obj.value;
-		}
-	}
-
-	function update_batchtable()
-	{
-		if (JSON.stringify(updateField_c) == '{}')
-		{
-			alert('请输入修改内容!');
-			return false;
-		}
-		
-		var arr = { c_id:'updatebatchdatas', update:updateField_c };
-
-		$.post('php/control.php', arr, function(msg){
-			if (msg == 0)
-				alert('修改内容失败!');
-			else
-			{
-				alert(msg);
-				page_table(1, { pageType:2, status:2 });
-			}
-		});
 	}
 
 	function fix(num, length) 
@@ -273,13 +184,14 @@ function getCookieName()
 	}
 
 	$(document).ready(function(){
-		page_table(1, { pageType:3 });
-		page_table(1, { pageType:2, status:2 });
+		page_table(1, { pageType:4 });
 
-		document.getElementsByName('search_start_pickdate')[0].value=getDate({ date:1, datesub:31 });
-		document.getElementsByName('search_start_picktime')[0].value="00:00";
-		document.getElementsByName('search_end_pickdate')[0].value=getDate({ date:1 });
-		document.getElementsByName('search_end_picktime')[0].value="23:59";
+		$(function() {
+			document.getElementsByName('search_start_pickdate')[0].value=getDate({ date:1, datesub:31 });
+			document.getElementsByName('search_start_picktime')[0].value="00:00";
+			document.getElementsByName('search_end_pickdate')[0].value=getDate({ date:1 });
+			document.getElementsByName('search_end_picktime')[0].value="23:59";
+		});
 	});
 
 </script>
@@ -311,9 +223,9 @@ function getCookieName()
 				                </a>
 				                <ul class="treeview-menu">
 				                	<li>
-				                		<a id="batch_table" href="Normal.php">
+				                		<a id="batch_table" href="ShowTime.php">
 				                			<i class="fa fa-angle-right"></i>
-				                			<span>批次表</span>
+				                			<span>授权表</span>
 				                		</a>
 				                	</li>
 				                </ul>
@@ -363,74 +275,36 @@ function getCookieName()
 		<!-- main content start-->
 		<div id="page-wrapper">
 			<div class="main-page">
-				<h3 class="title1">批次表</h3>
+				<h3 class="title1">授权表</h3>
 				<div class="panel-group tool-tips widget-shadow" id="accordion" role="tablist" aria-multiselectable="true">
 					<div class="panel panel-default">
 						<div class="panel-heading" role="tab" id="headingOne">
 						  <h4 class="panel-title">
 							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-								新增
+								数据
 							</a>
 						  </h4>
 						</div>
 						<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
 						  	<div class="panel-body">
-								<div class="panel-body">
-							  		<form action="php/control.php?c_id=batchtablenew" method="post" enctype="multipart/form-data">
-										<table class="table table-bordered table-striped no-margin grd_tble">
-											<thead>
-												<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>状态</th> <th>描述</th> <th>时间</th> <th>操作<h5><input type="checkbox" onchange="select_all(this);" >一键操作</h5></th> </tr>
-											</thead>
-
-											<tbody id="batch_table_new_tbody">
-												
-											</tbody>
-										</table>
-										
-							            <input type="submit" class="btn btn-primary" value="提交" />
-							            <div id="batch_table_new_tfoot">
-							            </div>
-						        	</form>
-								</div>
-						  	</div>
-						</div>
-					</div>
-
-					<div class="panel panel-default">
-						<div class="panel-heading" role="tab" id="headingTwo">
-						  <h4 class="panel-title">
-							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-								数据
-							</a>
-						  </h4>
-						</div>
-						<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-						  	<div class="panel-body">
 						  		<form action="#">
-									<select name="search_status" onchange="select_search_status(this.value);">
-										<option value="2">开发中</option>
-										<option value="1">待开发</option>
-									</select>
 									<input type="text" class="input" name="search_start_pickdate" id="search_start_pickdate" size="9" placeholder="开始日期" />
 									<input type="text" class="input" name="search_start_picktime" id="search_start_picktime" size="4" placeholder="开始时间" />
 									<span>-</span>
 									<input type="text" class="input" name="search_end_pickdate" id="search_end_pickdate" size="9" placeholder="结束日期" />
 									<input type="text" class="input" name="search_end_picktime" id="search_end_picktime" size="4" placeholder="结束时间" />
-									<input type="button" class="btn btn-primary" onclick="search_batchtable(1, { status:search_status.value, start_date:search_start_pickdate.value, start_time:search_start_picktime.value, end_date:search_end_pickdate.value, end_time:search_end_picktime.value });" value="查询" />
+									<input type="button" class="btn btn-primary" onclick="search_exploittable(1, { start_date:search_start_pickdate.value, start_time:search_start_picktime.value, end_date:search_end_pickdate.value, end_time:search_end_picktime.value });" value="查询" />
 								</form>
 								<br/>
-								<form action="#">
-									<table class="table table-bordered table-striped no-margin grd_tble">
-										<thead>
-											<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>状态</th> <th>描述</th> <th>时间</th> </tr>
-										</thead>
+								<table class="table table-bordered table-striped no-margin grd_tble">
+									<thead>
+										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>时间</th> </tr>
+									</thead>
 
-										<tbody id="batch_table_tbody">
-											
-										</tbody>
-									</table>
-									<input type="button" class="btn btn-primary" onclick="update_batchtable();" value="提交" />
-								</form>
+									<tbody id="batch_table_tbody">
+										
+									</tbody>
+								</table>
 								<div id="batch_table_tfoot">
 					            </div>
 							</div>

@@ -244,9 +244,13 @@ switch ($c_id)
 						setCookie('password','',time()-10);
 					}
 
-					if ($app['user_total']->getUserStatus($datas['status']) == 'Normal' || $app['user_total']->getUserStatus($datas['status']) == 'Office')
+					if ($app['user_total']->getUserStatus($datas['status']) == 'Normal')
 					{
 						$app['hint']['goto']('../Normal.php');
+					}
+					else if ($app['user_total']->getUserStatus($datas['status']) == 'Office')
+					{
+						$app['hint']['goto']('../ShowTime.php');
 					}
 					else
 					{
@@ -943,6 +947,7 @@ switch ($c_id)
 				$start_time = $app['hint']['isset']($_POST, 'start_time');
 				$end_date = $app['hint']['isset']($_POST, 'end_date');
 				$end_time = $app['hint']['isset']($_POST, 'end_time');
+				$control = $app['hint']['isset']($_POST, 'control');
 				$append = '{';
 
 				$selectArr = array();
@@ -1029,8 +1034,14 @@ switch ($c_id)
 				$resultDatas['html'] = '';
 				$resultDatas['page'] = '';
 
-				$temp = '<td>%u_id%</td> <td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td>%u_desc%</td> <td>%u_source%</td> <td>%u_time%</td>';
-				$ec = array('%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_source%', '%u_time%');
+				$temp = '<td><input type="text" name="ename_%u_id%"  value="%u_ename%" size="8" onchange="updateField(this)" placeholder="员工姓名"/></td> <td>%u_id%</td> <td>%u_name%</td> <td><input type="text" name="phone_%u_id%"  value="%u_phone%" size="11" onchange="updateField(this)" placeholder="电话"/></td> <td><input type="text" name="wechat_%u_id%"  value="%u_wechat%" size="11" onchange="updateField(this)" placeholder="微信号"/></td> <td><input type="text" name="addr_%u_id%"  value="%u_addr%" onchange="updateField(this)" placeholder="地址"/></td> <td>%u_desc%</td> <td>%u_source%</td> <td>%u_time%</td>';
+				$ec = array('%u_ename%', '%u_id%', '%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_source%', '%u_time%');
+
+				if ($control && $control == 1)
+				{
+					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td>%u_time%</td>';
+					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_time%');
+				}
 
 				for ($i=$index, $j=0; $j < $table_show_num - $failoverIndex; $i++, $j++)
 				{
@@ -1040,8 +1051,15 @@ switch ($c_id)
 
 						$resultDatas['html'] = $resultDatas['html'] . '<tr>';
 
-						$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], count(explode(',', $datas['control'])), $datas['source'], $datas['time']), $temp);
-
+						if ($control && $control == 1)
+						{
+							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['time']), $temp);
+						}
+						else
+						{
+							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['e_name'], $datas['u_id'], $datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], count(explode(',', $datas['control'])), $datas['source'], $datas['time']), $temp);
+						}
+						
 						$resultDatas['html'] = $resultDatas['html'] . '</tr> ';
 					}
 				}
@@ -1057,6 +1075,39 @@ switch ($c_id)
 				
 				echo json_encode($resultDatas);
 			}
+		}
+		break;
+
+	case 'updateexploittable':
+		{
+			$result = '修改失败';
+
+			if (isset($_POST['u_id']))
+			{
+				$u_id = $_POST['u_id'];
+				$key = $app['hint']['isset']($_POST, 'key');
+				$value = $app['hint']['isset']($_POST, 'value');
+
+				if ($key && $value)
+				{
+					$data_datas = $app['exploit_table']->check(array('u_id'=>$u_id));
+
+					if (is_array($data_datas))
+					{
+						if ($key == 'ename')
+						{
+							$key = 'e_name';
+							$value = $data_datas[0]['g_id'] . '-' . $value;
+						}
+
+						$app['exploit_table']->update(array($key => $value), array('u_id'=>$u_id));
+
+						$result = '修改成功';
+					}
+				}
+			}
+
+			echo $result;
 		}
 		break;
 	
