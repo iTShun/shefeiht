@@ -135,6 +135,26 @@ function getCookieName()
 		}
 	}
 
+	function updateField(obj)
+	{
+		if (obj)
+		{
+			var strs = obj.name.split('_');
+
+			var arr = { c_id:'updateexploittable', u_id:strs[1], key:strs[0], value:obj.value };
+
+			$.post('php/control.php', arr, function(msg){
+				if (msg == 0)
+					alert('无法修改内容!');
+				else
+				{
+					alert(msg);
+					page_table(1, { pageType:4 });
+				}
+			});
+		}
+	}
+	
 	function fix(num, length) 
 	{
 		return ('' + num).length < length ? ((new Array(length + 1)).join('0') + num).slice(-length) : '' + num;
@@ -210,7 +230,7 @@ function getCookieName()
 			            <span class="icon-bar"></span>
 			            <span class="icon-bar"></span>
 			            </button>
-			            <h1><a class="navbar-brand" href="Normal.php"><span class="fa fa-area-chart"></span> 奢妃</a></h1>
+			            <h1><a class="navbar-brand" href="ShowTime.php"><span class="fa fa-area-chart"></span> 奢妃</a></h1>
 			        </div>
 
 			        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -298,7 +318,7 @@ function getCookieName()
 								<br/>
 								<table class="table table-bordered table-striped no-margin grd_tble">
 									<thead>
-										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>时间</th> </tr>
+										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>描述</th> <th>时间</th> </tr>
 									</thead>
 
 									<tbody id="batch_table_tbody">

@@ -1039,8 +1039,8 @@ switch ($c_id)
 
 				if ($control && $control == 1)
 				{
-					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td>%u_time%</td>';
-					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_time%');
+					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td><input type="text" name="desc_%u_id%"  value="%u_desc%" onchange="updateField(this)" placeholder="描述"/></td> <td>%u_time%</td>';
+					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_id%', '%u_time%');
 				}
 
 				for ($i=$index, $j=0; $j < $table_show_num - $failoverIndex; $i++, $j++)
@@ -1053,7 +1053,7 @@ switch ($c_id)
 
 						if ($control && $control == 1)
 						{
-							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['time']), $temp);
+							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['desc'], $datas['u_id'], $datas['time']), $temp);
 						}
 						else
 						{
