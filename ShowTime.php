@@ -40,7 +40,7 @@ require_once 'php/control.php';
 function getCookieUsername()
 {
 	global $app;
-	if(isset($_COOKIE['username']) && !empty($_COOKIE['username']) && $app['user_total']->checkUserStatus($_COOKIE['username'], array(2, 3)))
+	if(isset($_COOKIE['username']) && !empty($_COOKIE['username']) && $app['user_total']->checkUserStatus($_COOKIE['username'], array(3)))
 	{
 		return $_COOKIE['username'];
 	}
@@ -72,9 +72,20 @@ function getCookieName()
        	if (r != null) return unescape(r[2]); return null;
     }
 
+    function select_all(obj)
+	{
+		if (obj)
+		{
+			$("input[type='checkbox']").each(function() {  
+                this.checked = obj.checked;
+            });
+		}
+	}
+
 	function search_exploittable(index, datas = {})
 	{
 		if (index == 0 &&
+			!datas.hasOwnProperty('status') &&
 			!datas.hasOwnProperty('start_date') &&
 			!datas.hasOwnProperty('start_time') &&
 			!datas.hasOwnProperty('end_date') &&
@@ -84,7 +95,10 @@ function getCookieName()
 			return false;
 		}
 		
-		var arr = { c_id:'getexploittable', pos:'#headingOne', index:index, control:1 };
+		var arr = { c_id:'getexploittable', pos:'#headingTwo', index:index, control:1 };
+
+		if (datas.hasOwnProperty('status'))
+			arr['status'] = datas['status'];
 
 		if (datas.hasOwnProperty('start_date'))
 			arr['start_date'] = datas['start_date'];
@@ -113,6 +127,25 @@ function getCookieName()
 		return true;
 	}
 
+	function search_exploittable_new(index, datas = {})
+	{
+		var arr = { c_id:'getexploittable', pos:'#headingOne', index:index, control:2 };
+		
+		$.post('php/control.php', arr, function(msg){
+			if (msg == 0)
+				alert('无内容!');
+			else
+			{
+				//alert(JSON.stringify(msg));
+				$("#exploit_table_new_tbody").html(msg.html);
+				$("#exploit_table_new_tfoot").html(msg.page);
+			}
+		},
+		'json');
+
+		return true;
+	}
+
 	function page_table(page, datas = {})
 	{
 		var pageType = 0;
@@ -124,6 +157,8 @@ function getCookieName()
 		{
 			if (pageType == 4)
 				search_exploittable(1, datas);
+			if (pageType == 5)
+				search_exploittable_new(1, datas);
 		}
 		else
 		{
@@ -132,6 +167,8 @@ function getCookieName()
 
 			if (pageType == 4)
 				search_exploittable(index, datas);
+			if (pageType == 5)
+				search_exploittable_new(index, datas);
 		}
 	}
 
@@ -149,7 +186,7 @@ function getCookieName()
 				else
 				{
 					alert(msg);
-					page_table(1, { pageType:4 });
+					page_table(1, { pageType:4, status:2 });
 				}
 			});
 		}
@@ -204,7 +241,8 @@ function getCookieName()
 	}
 
 	$(document).ready(function(){
-		page_table(1, { pageType:4 });
+		page_table(1, { pageType:4, status:2 });
+		page_table(1, { pageType:5 });
 
 		$(function() {
 			document.getElementsByName('search_start_pickdate')[0].value=getDate({ date:1, datesub:31 });
@@ -301,24 +339,59 @@ function getCookieName()
 						<div class="panel-heading" role="tab" id="headingOne">
 						  <h4 class="panel-title">
 							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-								数据
+								新增
 							</a>
 						  </h4>
 						</div>
 						<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
 						  	<div class="panel-body">
+								<div class="panel-body">
+									<form action="php/control.php?c_id=exploittablenew" method="post" enctype="multipart/form-data">
+										<table class="table table-bordered table-striped no-margin grd_tble">
+											<thead>
+												<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>时间</th> <th>操作<h5><input type="checkbox" onchange="select_all(this);" >一键操作</h5></th> </tr>
+											</thead>
+
+											<tbody id="exploit_table_new_tbody">
+												
+											</tbody>
+										</table>
+										
+							            <input type="submit" class="btn btn-primary" value="提交" />
+							            <div id="exploit_table_new_tfoot">
+							            </div>
+						        	</form>
+								</div>
+						  	</div>
+						</div>
+					</div>
+
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingTwo">
+						  <h4 class="panel-title">
+							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+								数据
+							</a>
+						  </h4>
+						</div>
+						<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+						  	<div class="panel-body">
 						  		<form action="#">
+						  			<select name="search_status" >
+										<option value="2">开发中</option>
+										<option value="3">已开发</option>
+									</select>
 									<input type="text" class="input" name="search_start_pickdate" id="search_start_pickdate" size="9" placeholder="开始日期" />
 									<input type="text" class="input" name="search_start_picktime" id="search_start_picktime" size="4" placeholder="开始时间" />
 									<span>-</span>
 									<input type="text" class="input" name="search_end_pickdate" id="search_end_pickdate" size="9" placeholder="结束日期" />
 									<input type="text" class="input" name="search_end_picktime" id="search_end_picktime" size="4" placeholder="结束时间" />
-									<input type="button" class="btn btn-primary" onclick="search_exploittable(1, { start_date:search_start_pickdate.value, start_time:search_start_picktime.value, end_date:search_end_pickdate.value, end_time:search_end_picktime.value });" value="查询" />
+									<input type="button" class="btn btn-primary" onclick="search_exploittable(1, { status:search_status.value, start_date:search_start_pickdate.value, start_time:search_start_picktime.value, end_date:search_end_pickdate.value, end_time:search_end_picktime.value });" value="查询" />
 								</form>
 								<br/>
 								<table class="table table-bordered table-striped no-margin grd_tble">
 									<thead>
-										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>描述</th> <th>时间</th> </tr>
+										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>描述</th> <th>状态</th> <th>时间</th> </tr>
 									</thead>
 
 									<tbody id="batch_table_tbody">

@@ -70,6 +70,26 @@ function batch_table_status_convert($status)
 	return '';
 }
 
+function exploit_table_status_convert($status)
+{
+	switch ($status) {
+		case '1':
+			return '<select name="status_%u_id%" class="form-control2" onchange="updateField(this)">
+										<option value="2">开发中</option>
+										<option value="3">已开发</option>
+									</select>';
+			break;
+
+		case '2':
+			return '<select name="status_%u_id%" class="form-control2" onchange="updateField(this)">
+										<option value="3">已开发</option>
+										<option value="2">开发中</option>
+									</select>';
+			break;
+	}
+	return '';
+}
+
 function status_convert($status)
 {
 	switch ($status) {
@@ -942,6 +962,7 @@ switch ($c_id)
 				$name = $app['hint']['isset']($_POST, 'name');
 				$phone = $app['hint']['isset']($_POST, 'phone');
 				$wechat = $app['hint']['isset']($_POST, 'wechat');
+				$status = $app['hint']['isset']($_POST, 'status');
 				$source = $app['hint']['isset']($_POST, 'source');
 				$start_date = $app['hint']['isset']($_POST, 'start_date');
 				$start_time = $app['hint']['isset']($_POST, 'start_time');
@@ -953,6 +974,24 @@ switch ($c_id)
 				$selectArr = array();
 
 				$selectArr['ORDER'] = array("time" => "DESC");
+
+				if ($control)
+				{
+					if ($control == 1)
+						$selectArr['status[>]'] = '0';
+					else if ($control == 2)
+						$selectArr['status'] = '0';
+				}
+
+				if ($status && $status != -1)
+				{
+					if ($append == '{')
+						$append = $append . 'status:' . $status;
+					else
+						$append = $append . ',status:' . $status;
+					
+					$selectArr['status'] = ($status - 1);
+				}
 
 				if ($source && $source != -1)
 				{
@@ -997,11 +1036,21 @@ switch ($c_id)
 				}
 
 				$data_datas = $app['exploit_table']->check($selectArr);
-
-				if ($append == '{')
-					$append = $append . 'pageType:4 }';
-				else
-					$append = $append . ', pageType:4 }';
+				
+				if ($control && $control == 1)
+				{
+					if ($append == '{')
+						$append = $append . 'pageType:4 }';
+					else
+						$append = $append . ', pageType:4 }';
+				}
+				else if ($control && $control == 2)
+				{
+					if ($append == '{')
+						$append = $append . 'pageType:5 }';
+					else
+						$append = $append . ', pageType:5 }';
+				}
 
 				if ($u_id)
 					$search_datas = $app['exploit_table']->check(array('u_id'=>$u_id));
@@ -1039,8 +1088,13 @@ switch ($c_id)
 
 				if ($control && $control == 1)
 				{
-					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td><input type="text" name="desc_%u_id%"  value="%u_desc%" onchange="updateField(this)" placeholder="描述"/></td> <td>%u_time%</td>';
-					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_id%', '%u_time%');
+					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td><input type="text" name="desc_%u_id%"  value="%u_desc%" onchange="updateField(this)" placeholder="描述"/></td> <td>%u_status%</td> <td>%u_time%</td>';
+					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_status%', '%u_id%', '%u_time%');
+				}
+				else if ($control && $control == 2)
+				{
+					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td>%u_time%</td>';
+					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_time%');
 				}
 
 				for ($i=$index, $j=0; $j < $table_show_num - $failoverIndex; $i++, $j++)
@@ -1051,9 +1105,16 @@ switch ($c_id)
 
 						$resultDatas['html'] = $resultDatas['html'] . '<tr>';
 
-						if ($control && $control == 1)
+						if ($control)
 						{
-							$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['desc'], $datas['u_id'], $datas['time']), $temp);
+							if ($control == 1)
+							{
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['desc'], exploit_table_status_convert($datas['status']), $datas['u_id'], $datas['time']), $temp);
+							}
+							else if ($control == 2)
+							{
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['time']), $temp). '<td><input type="checkbox" name="' . $datas['u_id'] . '">&nbsp;已操作</td>';
+							}
 						}
 						else
 						{
@@ -1100,6 +1161,9 @@ switch ($c_id)
 							$value = $data_datas[0]['g_id'] . '-' . $value;
 						}
 
+						if ($key == 'status')
+							$value = $value - 1;
+
 						$app['exploit_table']->update(array($key => $value), array('u_id'=>$u_id));
 
 						$result = '修改成功';
@@ -1108,6 +1172,35 @@ switch ($c_id)
 			}
 
 			echo $result;
+		}
+		break;
+
+	case 'exploittablenew':
+		{
+			$result = '修改失败!';
+			$user_datas = $app['user_total']->check(array("username" => $_COOKIE['username']));
+			
+			if (is_array($user_datas) && isset($user_datas['status']) && $user_datas['status'] == 3)
+			{
+				foreach ($_POST as $key=>$value) 
+				{
+					if ($key)
+					{
+						$datas = $app['exploit_table']->check(array("u_id" => $key));
+						
+						if ($datas && is_array($datas) && isset($datas[0]))
+						{
+							$status = $datas[0]['status'];
+							if ($status == '0')
+								$app['exploit_table']->update(array('status' => 1), array("u_id" => $key));
+						}
+					}
+				}
+				$result = '修改成功!';
+			}
+
+			$app['hint']['hint']($result);
+			$app['hint']['back_up']();
 		}
 		break;
 	
