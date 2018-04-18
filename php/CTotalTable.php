@@ -176,7 +176,7 @@ class TotalTable
 		    		}
 		    		else
 		    		{
-		    			if (empty($strs[ 1 ]) || $this->check(array("phone" => $strs[ 1 ])))
+		    			if (empty($strs[ 1 ]) || strlen($strs[ 1 ]) != 11 || $this->check(array("phone" => $strs[ 1 ])))
 		    				break;
 
 		    			$app['db_database']->insert($this->tableName(), array(
@@ -208,7 +208,7 @@ class TotalTable
 		    		}
 		    		else
 		    		{
-		    			if (empty($strs[ 1 ]) || $this->check(array("phone" => $strs[ 1 ])))
+		    			if (empty($strs[ 1 ]) || strlen($strs[ 1 ]) != 11 || $this->check(array("phone" => $strs[ 1 ])))
 		    				break;
 
 		    			$app['db_database']->insert($this->tableName(), array(
@@ -224,7 +224,7 @@ class TotalTable
 
 		    	case 3:
 		    	{
-		    		if ((empty($strs[ 1 ]) && empty($strs[ 2 ])) || $this->check(array("phone" => $strs[ 1 ], "wechat" => $strs[ 2 ])))
+		    		if ((empty($strs[ 1 ]) && empty($strs[ 2 ])) || strlen($strs[ 1 ]) != 11 || $this->check(array("phone" => $strs[ 1 ], "wechat" => $strs[ 2 ])))
 		    			break;
 
 		    		$app['db_database']->insert($this->tableName(), array(
@@ -240,7 +240,7 @@ class TotalTable
 
 		    	case 4:
 		    	{
-		    		if ((empty($strs[ 1 ]) && empty($strs[ 2 ])) || $this->check(array("phone" => $strs[ 1 ], "wechat" => $strs[ 2 ])))
+		    		if ((empty($strs[ 1 ]) && empty($strs[ 2 ])) || strlen($strs[ 1 ]) != 11 || $this->check(array("phone" => $strs[ 1 ], "wechat" => $strs[ 2 ])))
 		    			break;
 
 		    		$app['db_database']->insert($this->tableName(), array(

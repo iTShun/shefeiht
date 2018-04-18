@@ -297,6 +297,9 @@ switch ($c_id)
 						$name = $app['hint']['isset']($_POST, 'table_add_name');
 						$phone = isset($_POST['table_add_phone']) ? $_POST['table_add_phone'] : '';
 
+						if (strlen($phone) != 11)
+							$phone = '';
+
 						$app['total_table']->insert(array(
 							"name" => $name, 
 							"phone" => $phone,
@@ -323,13 +326,16 @@ switch ($c_id)
 					{
 						$wechat = isset($_POST['table_add_wechat']) ? $_POST['table_add_wechat'] : '';
 
-						$app['total_table']->insert(array(
+						if (strlen($_POST['table_add_phone']) == 11)
+						{
+							$app['total_table']->insert(array(
 							"name" => $name, 
 							"phone" => $_POST['table_add_phone'], 
 							"addr" => '',
 							"wechat" => $wechat,
 							"source" => source_convert($source),
 							"time" => $time));
+						}
 
 						$app['hint']['hint']('添加成功!');
 						$app['hint']['back_up']();
@@ -621,22 +627,40 @@ switch ($c_id)
 					{
 						if ($key != 'g_id')
 						{
-							$datas = $app['total_table']->check(array("u_id" => $key));
-							if ($datas && is_array($datas))
+							$total_datas = $app['total_table']->check(array("u_id" => $key));
+							$batch_datas = $app['batch_table']->check(array("u_id" => $key));
+
+							if ($total_datas && is_array($total_datas))
 							{
 								$app['total_table']->update(array("status" => 1), array("u_id" => $key));
-								$app['batch_table']->insert(array(
-										'u_id' => $datas[0]['u_id'],
+
+								if (!$batch_datas && !is_array($batch_datas))
+								{
+									$app['batch_table']->insert(array(
+										'u_id' => $total_datas[0]['u_id'],
 										'g_id' => $g_id,
-										'name' => $datas[0]['name'],
-										'phone' => $datas[0]['phone'],
-										'wechat' => $datas[0]['wechat'],
+										'name' => $total_datas[0]['name'],
+										'phone' => $total_datas[0]['phone'],
+										'wechat' => $total_datas[0]['wechat'],
 										'status' => 0,
 										'control' => '',
-										'desc' => $datas[0]['desc'],
-										'source' => $datas[0]['source'],
+										'desc' => $total_datas[0]['desc'],
+										'source' => $total_datas[0]['source'],
 										'time' => $time
 									));
+								}
+							}
+
+							if ($batch_datas && is_array($batch_datas))
+							{
+								$app['batch_table']->update(array(
+										'g_id' => $g_id,
+										'status' => 0,
+										'control' => $batch_datas[0]['control'],
+										'desc' => '',
+										'time' => $time
+									), 
+									array("u_id" => $key));
 							}
 						}
 					}
@@ -685,8 +709,8 @@ switch ($c_id)
 						}
 					}
 
-					if ($control == 1)
-						$selectArr['control'] = '';
+					if ($control == 1 && $g_id)
+						$selectArr['control[!~]'] = $g_id;
 					else if ($control == 2)
 						$selectArr['control[!]'] = '';
 				}
@@ -865,7 +889,7 @@ switch ($c_id)
 							if ($control == '')
 								$app['batch_table']->update(array("control" => $user_datas['g_id'], 'status' => 1), array("u_id" => $key));
 							else
-								$app['batch_table']->update(array("control" => ',' . $user_datas['g_id'], 'status' => 1), array("u_id" => $key));
+								$app['batch_table']->update(array("control" => $control . ',' . $user_datas['g_id'], 'status' => 1), array("u_id" => $key));
 						}
 					}
 				}
@@ -1037,19 +1061,19 @@ switch ($c_id)
 
 				$data_datas = $app['exploit_table']->check($selectArr);
 				
-				if ($control && $control == 1)
-				{
-					if ($append == '{')
-						$append = $append . 'pageType:4 }';
-					else
-						$append = $append . ', pageType:4 }';
-				}
-				else if ($control && $control == 2)
+				if ($control && $control == 2)
 				{
 					if ($append == '{')
 						$append = $append . 'pageType:5 }';
 					else
 						$append = $append . ', pageType:5 }';
+				}
+				else
+				{
+					if ($append == '{')
+						$append = $append . 'pageType:4 }';
+					else
+						$append = $append . ', pageType:4 }';
 				}
 
 				if ($u_id)
@@ -1088,8 +1112,8 @@ switch ($c_id)
 
 				if ($control && $control == 1)
 				{
-					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td><input type="text" name="desc_%u_id%"  value="%u_desc%" onchange="updateField(this)" placeholder="描述"/></td> <td>%u_status%</td> <td>%u_time%</td>';
-					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%', '%u_desc%', '%u_status%', '%u_id%', '%u_time%');
+					$temp = '<td>%u_name%</td> <td>%u_phone%</td> <td>%u_wechat%</td> <td>%u_addr%</td> <td><a href="upload/%u_id%.jpg" target="_blank">二维码</a></td> <td>%u_status%</td> <td>%u_time%</td> <tr><td colspan="7"><textarea style="width:100%;" name="desc_%u_id%" onchange="updateField(this)" placeholder="描述" >%u_desc%</textarea></td></tr>';
+					$ec = array('%u_name%', '%u_phone%', '%u_wechat%', '%u_addr%','%u_status%', '%u_id%', '%u_time%', '%u_desc%');
 				}
 				else if ($control && $control == 2)
 				{
@@ -1109,7 +1133,7 @@ switch ($c_id)
 						{
 							if ($control == 1)
 							{
-								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], $datas['desc'], exploit_table_status_convert($datas['status']), $datas['u_id'], $datas['time']), $temp);
+								$resultDatas['html'] = $resultDatas['html'] . str_replace($ec, array($datas['name'], $datas['phone'], $datas['wechat'], $datas['addr'], exploit_table_status_convert($datas['status']), $datas['u_id'], $datas['time'], $datas['desc']), $temp);
 							}
 							else if ($control == 2)
 							{
@@ -1201,6 +1225,36 @@ switch ($c_id)
 
 			$app['hint']['hint']($result);
 			$app['hint']['back_up']();
+		}
+		break;
+
+	case 'qrcode':
+		{
+			if (isset($_FILES["file"]) && isset($_FILES["file"]["name"]))
+			{
+				if (empty($_FILES["file"]["name"]))
+				{
+					$app['hint']['hint']('请输入添加文件!');
+					$app['hint']['back_up']();
+				}
+				else
+				{
+					$file_datas = $app['exploit_table']->upload($_FILES);
+					if (is_array($file_datas))
+					{
+						$u_id = $app['hint']['isset']($_POST, 'u_id');
+						$temp = '%number%.%ext%';
+						$ec = array('%number%', '%ext%');
+
+						$newFileName = iconv('UTF-8', 'GB18030', str_replace($ec, array($u_id, $file_datas['ext']), $temp));
+
+						rename($file_datas['path'] . $_FILES["file"]["name"], $file_datas['path'] . $newFileName);
+
+						$app['hint']['hint']('添加成功!');
+						$app['hint']['back_up']();
+					}
+				}
+			}
 		}
 		break;
 	

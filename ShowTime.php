@@ -391,7 +391,7 @@ function getCookieName()
 								<br/>
 								<table class="table table-bordered table-striped no-margin grd_tble">
 									<thead>
-										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>描述</th> <th>状态</th> <th>时间</th> </tr>
+										<tr> <th>名字</th> <th>电话</th> <th>微信号</th> <th>地址</th> <th>二维码</th> <th>状态</th> <th>时间</th> </tr>
 									</thead>
 
 									<tbody id="batch_table_tbody">
