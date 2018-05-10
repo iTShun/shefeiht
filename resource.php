@@ -608,8 +608,8 @@ if($act == "")
             <td><?php echo $arr["qudao"];?></td>
             <td>
              <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>&resourcestatus=<?php echo $curresourcestatus;?>&resourcequdao=<?php echo $curresourcequdao;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>&nbsp;&nbsp; 
-             <a title="回收" href="?act=recycle_superresource&id=<?=$arr['id']?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>&nbsp;&nbsp; 
-             <a title="删除" href="?act=delete_superresource&id=<?=$arr['id']?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
+             <a title="回收" href="?act=recycle_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要回收吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>&nbsp;&nbsp; 
+             <a title="删除" href="?act=delete_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要删除吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
             </td>
           <?php } else if ($curresourcetype == 1) { ?>
            <td><?php echo $arr["name"];?></td>
@@ -643,7 +643,7 @@ if($act == "")
             <td><?php echo $arr["applytime"];?></td>
             <td>
              <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>&resourcestatus=<?php echo $curresourcestatus;?>&resourcequdao=<?php echo $curresourcequdao;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>&nbsp;&nbsp; 
-             <a title="回收" href="?act=recycle_superresource&id=<?=$arr['id']?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>&nbsp;&nbsp; 
+             <a title="回收" href="?act=recycle_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要回收吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>&nbsp;&nbsp; 
             </td>
           <?php } else if ($curresourcetype == 2) { ?>
            <td><?php echo $arr["name"];?></td>
@@ -2322,6 +2322,301 @@ if($act == "apply_resource") {
 </table>
 </article>
 
+
+<?php 
+  
+} 
+
+if($act == "updatelog"){
+
+  $data_arr = array("ORDER"=>array("time"=>"DESC"));
+
+  $curcrew = trim($_REQUEST['crew']);
+
+   if ($curcrew == "")
+   {
+
+      $curcrew = -1;
+
+   }
+
+   $start_date = trim($_REQUEST['start_pickdate']);
+  $start_time = trim($_REQUEST['start_picktime']);
+  $end_date = trim($_REQUEST['end_pickdate']);
+  $end_time = trim($_REQUEST['end_picktime']);
+
+    if ($start_date == "")
+      $start_date = date('Y-m-d', strtotime('-7 days'));
+
+   if ($start_time == "")
+    $start_time = "00:00";
+
+  if ($end_date == "")
+      $end_date = date('Y-m-d');
+
+  if ($end_time == "")
+    $end_time = "23:59";
+
+   if($curcrew != -1)
+    $data_arr['curcontrol'] = $curcrew;
+
+  if ($start_date != "" && $start_time != "" && $end_date != "" && $end_time != "")
+  {
+    $data_arr["time[<>]"] = array($start_date . ' ' . $start_time, $end_date . ' ' . $end_time);
+  }
+
+  $showsize      = trim($_REQUEST['showsize']);
+
+  if($showsize == ""){
+
+       $pagesize = $cf['list_num'];//每页所要显示的数据个数。
+
+   $showsize       = $cf['list_num'];
+
+   }
+
+   else{
+
+     $pagesize = $showsize;
+
+   }
+   
+   $total    = $database->count("resource_update", $data_arr);
+
+   $filename = "?act=updatelog&showsize=".$showsize."&curcrew=".$curcrew."&start_pickdate=".$start_date."&start_picktime=".$start_time."&end_pickdate=".$end_date."&end_picktime=".$end_time."";
+
+  $currpage  = intval($_REQUEST["page"]);
+
+  if(!is_int($currpage))
+
+  $currpage=1;
+
+  if(intval($currpage)<1)$currpage=1;
+
+  if(intval($currpage-1)*$pagesize>$total)$currpage=1;
+
+  if(($total%$pagesize)==0){
+
+    $totalpage=intval($total/$pagesize);
+
+     }
+
+    else
+
+      $totalpage=intval($total/$pagesize)+1;
+?>
+
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> <a href="resource.php?">资源管理</a> <span class="c-gray en">&gt;</span> 资源更新记录 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+
+
+<div class="page-container">
+  <div class="text-c">
+
+    <table cellpadding="3" cellspacing="0" class="table_98">
+      <form action="?act=updatelog" method="post" name="form1">
+
+        <tr>
+        <td>组员：<span class="select-box inline">
+        <select  name="crew" id="crew" class="select" >
+
+            <?php
+               $groups = $database->select("admin", "*", array("section"=>2, "ORDER"=>array("id"=>"ASC")));
+               $curtemp = $database->select("admin", "*", array("id"=>$curcrew));
+
+              if ($curcrew == -1)
+                echo '<option value="-1">全部</option>';
+              else
+              {
+                if (isset($curtemp[0]) && $curcrew == $curtemp[0]['id'])
+                {
+                  $arr = $curtemp[0];
+                  echo '<option value="'.$curcrew.'">'.$arr['group'].'-'.$arr['name'].'</option>';
+                }
+                echo '<option value="-1">全部</option>';
+              }
+
+              for ($i=0; $i < count($groups); $i++) { 
+                if (isset($groups[$i]))
+                {
+                  $arr = $groups[$i];
+                  if ($curcrew != $groups[$i]['id'])
+                    echo '<option value="'.$arr['id'].'">'.$arr['group'].'-'.$arr['name'].'</option>';
+
+                  $crews = $database->select("admin", "*", array("section"=>$arr['section']+1, "group[~]"=>$arr['group']."-", "ORDER"=>array("id"=>"ASC")));
+
+                  if (is_array($crews))
+                  {
+                    for ($j=0; $j < count($crews); $j++) { 
+                      if (isset($crews[$j]) && $curcrew != $crews[$j]['id'])
+                      {
+                        $arr1 = $crews[$j];
+                        echo '<option value="'.$arr1['id'].'">&nbsp;'.$arr1['group'].'-'.$arr1['name'].'</option>';
+                      }
+                    }
+                  }
+                }
+              }
+
+            ?>
+             </select></span>
+          <input type="text" style="width:90px" class="input-text" name="start_pickdate" id="start_pickdate" value="<?=$start_date?>" placeholder="开始日期" />
+           <input type="text" style="width:70px" class="input-text" name="start_picktime" id="start_picktime" placeholder="开始时间" />
+          <span>-</span>
+          <input type="text" style="width:90px" class="input-text" name="end_pickdate" id="end_pickdate" value="<?=date('Y-m-d')?>" placeholder="结束日期" />
+          <input type="text" style="width:70px" class="input-text" name="end_picktime" id="end_picktime" placeholder="结束时间" />
+
+          <input type="hidden" name="showsize" id="showsize" value="<?=$showsize?>" />
+
+          <input name="submit" class="btn btn-success" type="submit" id="submit" value="查找"> </td>
+
+        </tr>
+      </form>
+    </table>
+
+
+    <table align="center" cellpadding="0" cellspacing="0" class="table_98">
+      <tr>
+
+    <td valign="top">
+
+      <form method="post" name="myform" id="myform" action="?act=updatelog">
+        <input type="hidden" name="curcrew" value="<?=$curcrew?>" />
+
+        <input type="hidden" name="start_pickdate" value="<?=$start_date?>" />
+
+        <input type="hidden" name="start_picktime" value="<?=$start_time?>" />
+
+        <input type="hidden" name="end_pickdate" value="<?=$end_date?>" />
+
+        <input type="hidden" name="end_picktime" value="<?=$end_time?>" />
+
+        <table cellpadding="3" cellspacing="0">
+          <tr>
+
+          <td align="right" style="text-align:right !important">
+
+        显示条数 <input style="width:50px" class="input-text" type="text" name="showsize" id="showsize" value="<?=$pagesize?>" size="8" onchange="javascript:submit()" /> &nbsp;&nbsp;&nbsp;&nbsp;
+
+          当前第<?=$currpage?>页, 共<?=$totalpage?>页/<?php  echo $total;?>个记录&nbsp;
+
+              <?php if($currpage==1){?>
+
+              首页&nbsp;上一页&nbsp;
+
+              <?php } else {?>
+
+              <a href="<?php echo $filename;?>&page=1">首页</a>&nbsp;<a href="<?php echo $filename;?>&page=<?php echo ($currpage-1);?>">上一页</a>&nbsp;
+
+              <?php }
+
+        if($currpage==$totalpage)
+
+        {?>
+
+        下一页&nbsp;尾页&nbsp;
+
+              <?php }else{?>
+
+              <a href="<?php echo $filename;?>&page=<?php echo ($currpage+1);?>">下一页</a>&nbsp;<a href="<?php echo $filename;?>&page=<?php echo  $totalpage;?>">尾页</a>&nbsp;
+
+              <?php }?>
+<span class="select-box inline">
+        <select name='page' size='1' id="page" class="select" onchange='javascript:submit()'>
+
+        <?php
+
+        for($i=1;$i<=$totalpage;$i++)
+
+        {
+
+        ?>
+
+         <option value="<?php echo $i; ?>" <?php if ($currpage==$i) echo "selected"; ?>> 第<?php echo $i;?>页</option>
+
+         <?php }?>
+
+         </select></span>
+
+        </td>
+
+        </tr>
+
+    </table>
+
+    <table cellpadding="3" cellspacing="1" class="table table-border table-bordered table-bg">        
+    <tr>
+          <td width="10%"><strong>序号</strong></td>
+          <td width="30%"><strong>修改前数据</strong></td>
+          <td width="30%"><strong>修改数据</strong></td>
+          <td width="10%"><strong>操作人员</strong></td>
+          <td width="10%"><strong>时间</strong></td>
+    </tr>
+
+    <?php
+
+      global $database;
+
+      $resources = $database->select("resource_update", "*", $data_arr);
+      $index = ($currpage - 1) * $showsize;
+
+      for ($i=0; $i < $showsize; $i++, $index++) { 
+          if (isset($resources[$index])) {
+            $arr = $resources[$index];  
+            $admin = explode("-", $arr["admin"]);
+            if($admin[0] && strlen($admin[0])){
+              $arr["admin"] = $admin[0];
+              $admin = $database->select("admin", "*", array("OR"=>array("username"=>$arr["admin"], "uname"=>$arr["admin"])));
+              if($admin[0] && strlen($admin[0]['name']))
+                $arr["admin"] = $admin[0]['name'];
+            }
+    ?>
+    <tr>
+      <td><?php echo $index+1;?></td>
+      <td><?php echo $arr["old"];?></td>
+      <td><?php echo $arr["update"];?></td>
+      <td><?php echo $arr["admin"];?></td>
+      <td><?php echo $arr["time"];?></td>
+    </tr>
+
+    <?php }} ?>
+    </table>
+    <table cellpadding="3" cellspacing="0" class="table_98">
+      <tr>
+
+        <td align="right" style="text-align:right !important">
+
+
+
+        当前第<?=$currpage?>页,&nbsp;共<?=$totalpage?>页/<?php  echo $total;?>个记录&nbsp;
+
+              <?php if($currpage==1){?>
+
+              首页&nbsp;上一页&nbsp;
+
+              <?php } else {?>
+
+              <a href="<?php echo $filename;?>&page=1">首页</a>&nbsp;<a href="<?php echo $filename;?>&page=<?php echo ($currpage-1);?>">上一页</a>&nbsp;
+
+              <?php }
+
+        if($currpage==$totalpage)
+
+        {?>
+
+        下一页&nbsp;尾页&nbsp;
+
+              <?php }else{?>
+
+              <a href="<?php echo $filename;?>&page=<?php echo ($currpage+1);?>">下一页</a>&nbsp;<a href="<?php echo $filename;?>&page=<?php echo  $totalpage;?>">尾页</a>&nbsp;
+
+              <?php }?>
+
+        </td>
+      </tr>
+    </table>
+  </form>
+
+</div></div>
 
 <?php 
   
