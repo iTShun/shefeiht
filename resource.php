@@ -2099,14 +2099,24 @@ if($act == "apply") {
 
                   $control = $database->select("admin", "*", array("id"=>$value));
 
-                  if($control[0] && in_array($control[0]['id'], $groupcrew))
+                  if($control[0])
                   {
-                    if ($arr['control'] == "")
-                      $arr['control'] = $control[0]["group"].'-'.$control[0]["name"];
-                    else
-                      $arr['control'] .= ','.$control[0]["group"].'-'.$control[0]["name"];
-                    if ($arr['curcontrol'] == $value)
-                        $curcontrol = $control[0]["group"].'-'.$control[0]["name"];
+                    if ($cf['cursection']%2 == 0 && in_array($control[0]['id'], $groupcrew))
+                    {
+                      if ($arr['control'] == "")
+                        $arr['control'] = $control[0]["group"].'-'.$control[0]["name"];
+                      else
+                        $arr['control'] .= ','.$control[0]["group"].'-'.$control[0]["name"];
+                      if ($arr['curcontrol'] == $value)
+                          $curcontrol = $control[0]["group"].'-'.$control[0]["name"];
+                    }
+                    else if ($cf['cursection'] == 1)
+                    {
+                      if ($arr['control'] == "")
+                        $arr['control'] = $control[0]["group"].'-'.$control[0]["name"];
+                      else
+                        $arr['control'] .= ','.$control[0]["group"].'-'.$control[0]["name"];
+                    }
                   }
                 }
             }
