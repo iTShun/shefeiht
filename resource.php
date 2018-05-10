@@ -2562,8 +2562,12 @@ if($act == "updatelog"){
       for ($i=0; $i < $showsize; $i++, $index++) { 
           if (isset($resources[$index])) {
             $arr = $resources[$index];  
-            $arr["old"] = json_decode($arr["old"], true);
+      	    $arr["old"] = json_decode($arr["old"], true);
+      	    if(isset($arr["old"]["desc"]))
+      	    	$arr["old"]["desc"] = json_decode($arr["old"]["desc"], true);
             $arr["update"] = json_decode($arr["update"], true);
+      	    if(isset($arr["update"]["desc"]))
+      	    	$arr["update"]["desc"] = json_decode($arr["update"]["desc"], true);
             $admin = explode("-", $arr["admin"]);
             if($admin[0] && strlen($admin[0])){
               $arr["admin"] = $admin[0];
