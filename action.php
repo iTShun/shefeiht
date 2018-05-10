@@ -677,9 +677,8 @@ if($act == "apply_resource"){
 				if ($b[0]) {
 					$a = 1;
 					$control = json_decode($b[0]['control'], true);
-					if (is_null($control) && !isset($control['crew']))
+					if (!isset($control['crew']))
 					{
-						$control = array();
 						$control['crew'] = $_POST['crew'];
 					}
 					else
