@@ -1284,8 +1284,18 @@ if($act == "recycle_superresource"){
 
   $id = $_GET['id'];
 
-  if ($database->has("resource", array("id"=>$id)) && is_object($database->update("resource", array("type"=>0, "curcontrol"=>0), array("id"=>$id))))
-    echo "<script>alert('资源回收成功');</script>";
+  $b=$database->select("resource", "*", array("id"=>$id));
+  if ($b[0])
+  {
+     $desc = json_decode($b[0]['desc'], true);
+     if(isset($desc['1']))
+        $desc['1'] = "";
+
+    if(is_object($database->update("resource", array("type"=>0, "curcontrol"=>0, "desc"=>json_encode($desc)), array("id"=>$id))))
+    {
+      echo "<script>alert('资源回收成功');</script>";
+    }
+  }
   else
     echo "<script>alert('资源回收失败');</script>";
 
