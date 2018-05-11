@@ -369,8 +369,6 @@ if($act == "")
 
     if ($curresourcetype == 1)
       $end = 2;
-    else if ($curresourcetype == 3)
-      $end = count($resourcestatus) - 1;
 
     for ($i=$begin; $i < $end; $i++) { 
       $key = $i;
@@ -1120,9 +1118,6 @@ if($act == "edit_superresource"){
               $begin = 0;
               $end = count($resourcestatus);
 
-              if($curresourcetype == 3)
-                $end = count($resourcestatus) - 1;
-
               for ($i=$begin; $i < $end; $i++) { 
                 $key = $i;
                 $value = $resourcestatus[$i];
@@ -1269,7 +1264,7 @@ if($act == "save_edit_superresource"){
         $arr["type"] = 0;
       }
     }
-    else if ($status == 3) 
+    else if ($status == 3 && $curresourcetype != 3) 
     {
       $arr["type"] = 0;
     }
