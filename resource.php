@@ -1348,23 +1348,23 @@ if($act == "submit_superresource"){
           $sjdlid = "";
           $sql = "insert into tgs_agent (agentid,idcard,dengji,product,quyu,applytime,shuyu,qudao,about,addtime,jietime,name,tel,fax,phone,danwei,email,url,qq,weixin,wangwang,paipai,zip,dizhi,beizhu,sjdl,shzt,hmd,password)values('$uid','$idcard','$dengji','$product','$quyu','$applytime','$shuyu','$qudao','$about','$addtime','$jietime','$name','$tel','$fax','$phone','$danwei','$email','$url','$qq','$weixin','$wangwang','$paipai','$zip','$dizhi','$beizhu','$sjdlid','$shzt','$hmd','$password')";
 
-          $b=$database->select("admin", "*", array("section"=>4, "group"=>0));
-          if($b[0])
-          {
-            $database->query($sql)->fetchAll();
-
-            $database->update("resource", array("type"=>3, "curcontrol"=>$b[0]['id'], "status"=>0, "ship"=>1, "submittime"=>date($cf['time_format'])), array("id"=>$id));
-
-            echo "<script>alert('授权成功');</script>";
-          }
-          else
-            echo "<script>alert('授权失败');</script>";
+          $database->query($sql)->fetchAll();
         }
         else
           echo "<script>alert('代理已存在');</script>";
       }
       else
           echo "<script>alert('代理编号已存在');</script>";
+      
+      $b=$database->select("admin", "*", array("section"=>4, "group"=>0));
+      if($b[0])
+      {
+        $database->update("resource", array("type"=>3, "curcontrol"=>$b[0]['id'], "status"=>0, "ship"=>1, "submittime"=>date($cf['time_format'])), array("id"=>$id));
+
+        echo "<script>alert('授权成功');</script>";
+      }
+      else
+        echo "<script>alert('授权失败');</script>";
     }
     else
       echo "<script>alert('代理编号为空');</script>";
