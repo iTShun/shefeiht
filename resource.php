@@ -1351,15 +1351,18 @@ if($act == "submit_superresource"){
           $database->query($sql)->fetchAll();
         }
         else
+        {
+          $uid = $arr[0]['agentid'];
           echo "<script>alert('代理已存在');</script>";
+        }
       }
       else
           echo "<script>alert('代理编号已存在');</script>";
-      
+
       $b=$database->select("admin", "*", array("section"=>4, "group"=>0));
       if($b[0])
       {
-        $database->update("resource", array("type"=>3, "curcontrol"=>$b[0]['id'], "status"=>0, "ship"=>1, "submittime"=>date($cf['time_format'])), array("id"=>$id));
+        $database->update("resource", array("uid"=>$uid, "type"=>3, "curcontrol"=>$b[0]['id'], "status"=>0, "ship"=>1, "submittime"=>date($cf['time_format'])), array("id"=>$id));
 
         echo "<script>alert('授权成功');</script>";
       }
