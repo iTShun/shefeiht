@@ -571,6 +571,9 @@ if($act == "")
             <?php } ?>
 
           <td width="4%"><strong>序号</strong></td>
+          <?php if ($cf['cursection'] == 1 && $curresourcetype == 3) { ?>
+          <td width="4%"><strong>代理编号</strong></td>
+          <?php } ?>
           <?php
             echo resourcetype_convert_table_html($curresourcetype);
           ?>
@@ -692,6 +695,9 @@ if($act == "")
              <a title="一键授权" href="?act=submit_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要一键授权吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">一键授权</i></a>
             </td>
           <?php } else if ($curresourcetype == 3) { ?>
+            <?php if ($cf['cursection'] == 1 && $curresourcetype == 3) { ?>
+            <td><?php echo $arr["uid"];?></td>
+            <?php } ?>
             <td><?php echo $arr["name"];?></td>
             <td><?php echo $arr["phone"];?></td>
             <td><?php echo $arr["wechat"];?></td>
