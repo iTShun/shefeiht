@@ -111,10 +111,7 @@ if($act == "")
 
   if($curresourcetype == "" && is_array($resourcetype)){
 
-    $curresourcetype = $cf['cursection'] - 1;
-
-    if ($cf['cursection'] != 1 && $cf['cursection']%2 != 0)
-      $curresourcetype = $cf['cursection'] - 2;
+    $curresourcetype = get_resourcetype_with_section($cf['cursection']);
 
    }
 
@@ -122,10 +119,10 @@ if($act == "")
 
   if($curresourcestatus == "" && is_array($resourcestatus)){
 
-    $curresourcestatus = $cf['cursection'] - 2;
+    $curresourcestatus = 0;
 
-    if ($cf['cursection'] != 1 && $cf['cursection']%2 != 0)
-      $curresourcestatus = $cf['cursection'] - 3;
+    if ($cf['cursection'] == 1)
+      $curresourcestatus = -1;
 
    }
 
@@ -218,12 +215,30 @@ if($act == "")
   {
     $data_arr['type'] = $curresourcetype;
     if($cf['cursection'] != 1)
+    {
       $data_arr['curcontrol'] = $cf['curid'];
+    }
 
     if ($h == "1")
-      $data_arr['ORDER'] = array("applytime"=>"ASC");
+    {
+      if($curresourcetype == 0)
+        $data_arr['ORDER'] = array("id"=>"ASC");
+      else
+      {
+        $arr = array("addtime","applytime","checktime","submittime");
+        $data_arr['ORDER'] = array($arr[$timetype]=>"ASC");
+      }
+    }
     else
-      $data_arr['ORDER'] = array("applytime"=>"DESC");
+    {
+      if($curresourcetype == 0)
+        $data_arr['ORDER'] = array("id"=>"DESC");
+      else
+      {
+        $arr = array("addtime","applytime","checktime","submittime");
+        $data_arr['ORDER'] = array($arr[$timetype]=>"DESC");
+      }
+    }
   }
 
   if($curcrew != -1)
@@ -249,6 +264,11 @@ if($act == "")
 
      $pagesize = $showsize;
 
+   }
+
+   if($cf['cursection'] == 6)
+   {
+    $data_arr = array("ship"=>1);
    }
    
    $total    = $database->count("resource", $data_arr);
@@ -282,6 +302,7 @@ if($act == "")
 <div class="page-container">
 	<div class="text-c">
 
+    <?php if($cf['cursection'] != 6) { ?>
     <table cellpadding="3" cellspacing="0" class="table_98">
       <form action="?" method="post" name="form1">
         <tr>
@@ -435,6 +456,7 @@ if($act == "")
         </tr>
       </form>
     </table>
+    <?php } ?>
 
     <table align="center" cellpadding="0" cellspacing="0" class="table_98">
 
@@ -665,7 +687,7 @@ if($act == "")
             <td><?php echo checktable_convert_status($arr["status"]);?></td>
             <td><?php echo $arr["checktime"];?></td>
             <td>
-             <a title="一键授权" href="?act=submit_superresource&id=<?=$arr['id']?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">一键授权</i></a>
+             <a title="一键授权" href="?act=submit_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要一键授权吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">一键授权</i></a>
             </td>
           <?php } else if ($curresourcetype == 3) { ?>
             <td><?php echo $arr["name"];?></td>
@@ -689,6 +711,13 @@ if($act == "")
             <td><?php echo $arr["submittime"];?></td>
             <td>
               <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>&resourcestatus=<?php echo $curresourcestatus;?>&resourcequdao=<?php echo $curresourcequdao;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>
+            </td>
+          <?php } else if ($curresourcetype == 4) { ?>
+            <td><?php echo $arr["name"];?></td>
+            <td><?php echo $arr["phone"];?></td>
+            <td><?php echo $arr["addr"];?></td>
+            <td>
+            <a title="删除" href="?act=delete_ship_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要删除吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
             </td>
           <?php } ?>
 
@@ -1083,6 +1112,9 @@ if($act == "edit_superresource"){
               $begin = 0;
               $end = count($resourcestatus);
 
+              if($curresourcetype == 3)
+                $end = count($resourcestatus) - 1;
+
               for ($i=$begin; $i < $end; $i++) { 
                 $key = $i;
                 $value = $resourcestatus[$i];
@@ -1215,15 +1247,12 @@ if($act == "save_edit_superresource"){
   if ($status != "")
   {
     $arr["status"] = $status;
-    if($status == 2)
+    if($status == 2 && $curresourcetype != 3)
     {
-      if (isset($resourcetype[$curresourcetype+1]))
+      $nextresourcetype = get_resourcetype_next_with_resourcetype($curresourcetype);
+      if ($nextresourcetype != "" && isset($resourcetype[$nextresourcetype]))
       {
-        if ($curresourcetype == 1)
-          $arr["type"] = $curresourcetype+1;
-        else
-          $arr["type"] = count($resourcetype) - 1;
-        
+        $arr["type"] = $nextresourcetype;
         $arr["status"] = 0;
         $arr["checktime"] = date($cf["time_format"]);
       }
@@ -1264,14 +1293,80 @@ if($act == "submit_superresource"){
   global $database;
   $id = $_GET['id'];
 
-  if ($database->has("resource", array("AND"=>array("id"=>$id, "type"=>2))))
+  $b=$database->select("resource", "*", array("AND"=>array("id"=>$id, "type"=>2)));
+  if($b[0])
   {
-    //Todo
-    $database->update("resource", array("type"=>3, "submittime"=>date($cf['time_format'])), array("id"=>$id));
-    echo "<script>alert('授权成功');</script>";
+    $agents = $database->query("select * from tgs_agent")->fetchAll();
+    $uid = "";
+    if(count($agents))
+    {
+      $end_agent = $agents[count($agents)-1];
+      $uid = substr($end_agent['agentid'], 0, 2) . (intval(substr($end_agent['agentid'], 2)) + 1);
+    }
+    else
+    {
+      //Todo 代理表为空
+    }
+
+    if($uid != "")
+    {
+      $arr = $database->query("select * from tgs_agent where agentid=".$uid)->fetchAll();
+      if(!isset($arr[0]))
+      {
+        $arr = $database->query("select * from tgs_agent where (phone=".$b[0]['phone']." OR weixin=".$b[0]['wechat'].")")->fetchAll();
+        if(!isset($arr[0]))
+        {
+          $idcard = $b[0]['idcard'];
+          $dengji = "一级代理";
+          $applytime = date("Y-m-d");
+          $addtime = date("Y-m-d");
+          $jietime = date("Y-m-d", strtotime("+1 year"));
+          $name = $b[0]['name'];
+          $phone = $b[0]['phone'];
+          $weixin = $b[0]['wechat'];
+          $qq = $b[0]['qq'];
+          $dizhi = ""; //Todo
+          $shzt = 1;
+          $hmd = 2;
+          $password = "12345678";
+          $product = "";
+          $quyu = "";
+          $shuyu = "";
+          $qudao = "";
+          $about = "";
+          $tel = "";
+          $fax = "";
+          $danwei = "";
+          $email = "";
+          $url = "";
+          $wangwang = "";
+          $paipai = "";
+          $zip = "";
+          $beizhu = "";
+          $sjdlid = "";
+          $sql = "insert into tgs_agent (agentid,idcard,dengji,product,quyu,applytime,shuyu,qudao,about,addtime,jietime,name,tel,fax,phone,danwei,email,url,qq,weixin,wangwang,paipai,zip,dizhi,beizhu,sjdl,shzt,hmd,password)values('$uid','$idcard','$dengji','$product','$quyu','$applytime','$shuyu','$qudao','$about','$addtime','$jietime','$name','$tel','$fax','$phone','$danwei','$email','$url','$qq','$weixin','$wangwang','$paipai','$zip','$dizhi','$beizhu','$sjdlid','$shzt','$hmd','$password')";
+
+          $b=$database->select("admin", "*", array("section"=>4, "group"=>0));
+          if($b[0])
+          {
+            $database->query($sql)->fetchAll();
+
+            $database->update("resource", array("type"=>3, "curcontrol"=>$b[0]['id'], "status"=>0, "ship"=>1, "submittime"=>date($cf['time_format'])), array("id"=>$id));
+
+            echo "<script>alert('授权成功');</script>";
+          }
+          else
+            echo "<script>alert('授权失败');</script>";
+        }
+        else
+          echo "<script>alert('代理已存在');</script>";
+      }
+      else
+          echo "<script>alert('代理编号已存在');</script>";
+    }
+    else
+      echo "<script>alert('代理编号为空');</script>";
   }
-  else
-    echo "<script>alert('授权失败');</script>";
 
   echo "<script>window.location.href='?'</script>";
 
@@ -1322,6 +1417,22 @@ if($act == "delete_superresource"){
 
   exit;
 
+}
+
+////标记已发货表资源//////////////////////////////////////
+if($act == "delete_ship_superresource"){
+  global $database;
+
+  $id = $_GET['id'];
+
+  if ($database->has("resource", array("id"=>$id)) && is_object($database->update("resource", array("ship"=>0, "shiptime"=>date($cf['time_format'])),array("id"=>$id))))
+    echo "<script>alert('资源删除成功');</script>";
+  else
+    echo "<script>alert('资源删除失败');</script>";
+
+  echo "<script>window.location.href='?'</script>";
+
+  exit;
 ?>
 
 
@@ -2712,6 +2823,13 @@ function resourcetype_convert_table_html($resourcetype)
                 <td width="7%"><strong>备注</strong></td>
                 <td width="7%"><strong>状态</strong></td>
                 <td width="7%"><strong>提交时间</strong></td>
+                <td width="9%"><strong>操作</strong></td>';
+      break;
+
+    case '4':
+      $html = '<td width="7%"><strong>姓名</strong></td>
+                <td width="7%"><strong>手机</strong></td>
+                <td width="7%"><strong>地址</strong></td>
                 <td width="9%"><strong>操作</strong></td>';
       break;
     
