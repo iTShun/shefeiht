@@ -1318,10 +1318,10 @@ if($act == "submit_superresource"){
 
     if($uid != "")
     {
-      $arr = $database->query("select * from tgs_agent where agentid=".$uid)->fetchAll();
+      $arr = $database->query("select * from tgs_agent where agentid='$uid'")->fetchAll();
       if(!isset($arr[0]))
       {
-        $arr = $database->query("select * from tgs_agent where (phone=".$b[0]['phone']." OR weixin=".$b[0]['wechat'].")")->fetchAll();
+        $arr = $database->query("select * from tgs_agent where phone='".$b[0]['phone']."' AND weixin='".$b[0]['wechat']."'")->fetchAll();
         if(!isset($arr[0]))
         {
           $idcard = $b[0]['idcard'];
@@ -1353,7 +1353,7 @@ if($act == "submit_superresource"){
           $beizhu = "";
           $sjdlid = "";
           $sql = "insert into tgs_agent (agentid,idcard,dengji,product,quyu,applytime,shuyu,qudao,about,addtime,jietime,name,tel,fax,phone,danwei,email,url,qq,weixin,wangwang,paipai,zip,dizhi,beizhu,sjdl,shzt,hmd,password)values('$uid','$idcard','$dengji','$product','$quyu','$applytime','$shuyu','$qudao','$about','$addtime','$jietime','$name','$tel','$fax','$phone','$danwei','$email','$url','$qq','$weixin','$wangwang','$paipai','$zip','$dizhi','$beizhu','$sjdlid','$shzt','$hmd','$password')";
-
+          
           $database->query($sql)->fetchAll();
         }
         else
