@@ -369,6 +369,8 @@ if($act == "")
 
     if ($curresourcetype == 1)
       $end = 2;
+    else if ($curresourcetype == 3)
+      $end = count($resourcestatus) - 1;
 
     for ($i=$begin; $i < $end; $i++) { 
       $key = $i;
