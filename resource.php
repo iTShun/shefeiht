@@ -266,7 +266,7 @@ if($act == "")
 
    }
 
-   if($cf['cursection'] == 6 || $cf['cursection'] == 1)
+   if($cf['cursection'] == 6 || ($cf['cursection'] == 1 && $curresourcetype == 4))
    {
     $data_arr = array("ship"=>1);
    }
@@ -688,6 +688,46 @@ if($act == "")
             <td><?php echo $arr["qq"];?></td>
             <td><?php echo $arr["addr"];?></td>
             <td><?php echo checktable_convert_status($arr["status"]);?></td>
+
+            <?php
+              global $database;
+
+              if($arr["control"] != "")
+              {
+                $controls = json_decode($arr["control"], true);
+                $groups = null;
+                $crews = null;
+                if(isset($controls['group']))
+                  $groups = explode(",", $controls['group']);
+
+                if(isset($controls['crew']))
+                  $crews = explode(",", $controls['crew']);
+
+                if(is_array($crews) && is_array($groups))
+                {
+                  $group = $groups[count($groups)-1];
+                  $crew = $crews[count($crews)-1];
+                  $g=$database->select("admin", "*", array("id"=>$group));
+                  $c=$database->select("admin", "*", array("id"=>$crew));
+                  
+                  if($c[0] && $g[0] && $c[0]['section']-1 == $g[0]['section'])
+                  {
+                    $arr["control"] = $c[0]['group'].'-'.$c[0]['name'];
+                  }
+                }
+                else if(is_array($groups))
+                {
+                  $group = $groups[count($groups)-1];
+                  $g=$database->select("admin", "*", array("id"=>$group));
+
+                  if($g[0])
+                  {
+                    $arr["control"] = $g[0]['group'].'-'.$g[0]['name'];
+                  }
+                }
+              }
+            ?>
+            <td><?php echo $arr["control"];?></td>
             <td><?php echo $arr["checktime"];?></td>
             <td>
              <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>&resourcestatus=<?php echo $curresourcestatus;?>&resourcequdao=<?php echo $curresourcequdao;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>&nbsp;&nbsp; 
@@ -1225,7 +1265,16 @@ if($act == "save_edit_superresource"){
     $arr["name"] = $name;
 
   if ($phone != "")
-    $arr["phone"] = $phone;
+  {
+    if(strlen($phone) == 11)
+      $arr["phone"] = $phone;
+    else
+    {
+      echo "<script>alert('电话信息有误');window.location.href='?'</script>";
+
+      exit;
+    }
+  }
 
   if ($wechat != "")
     $arr["wechat"] = $wechat;
@@ -1294,7 +1343,41 @@ if($act == "save_edit_superresource"){
 
   $olddatas = $database->select("resource", "*", array("id"=>$id));
 
-  if ($database->has("resource", array("id"=>$id)) && is_object($database->update("resource", $arr, array("id"=>$id))))
+  $b=$database->select("resource", "*", array("id"=>$id));
+
+  if($b[0] && $status == 2 && $curresourcetype != 3)
+  {
+    $arr = $b[0];
+    if($arr['phone'] == "" && $phone == "")
+    {
+      echo "<script>alert('请填写电话信息');window.location.href='?'</script>";
+
+      exit;
+    }
+
+    if($arr['wechat'] == "" && $wechat == "")
+    {
+      echo "<script>alert('请填写微信信息');window.location.href='?'</script>";
+
+      exit;
+    }
+
+    if($arr['addr'] == "" && $addr == "")
+    {
+      echo "<script>alert('请填写地址信息');window.location.href='?'</script>";
+
+      exit;
+    }
+
+    if($arr['qrcode'] == "" && $qrcode == "")
+    {
+      echo "<script>alert('请填写二维码信息');window.location.href='?'</script>";
+
+      exit;
+    }
+  }
+
+  if ($b[0] && is_object($database->update("resource", $arr, array("id"=>$id))))
   {
     $database->insert("resource_update", array("old"=>json_encode($olddatas[0]), "update"=>json_encode($arr), "admin"=>$_COOKIE['username']."-".$_COOKIE['name'], "time"=>date($cf['time_format'])));
     echo "<script>alert('资源更新成功');</script>";
@@ -2837,6 +2920,7 @@ function resourcetype_convert_table_html($resourcetype)
                 <td width="7%"><strong>QQ</strong></td>
                 <td width="7%"><strong>地址</strong></td>
                 <td width="7%"><strong>状态</strong></td>
+                <td width="7%"><strong>操作员</strong></td>
                 <td width="7%"><strong>提审时间</strong></td>
                 <td width="9%"><strong>操作</strong></td>';
       break;
