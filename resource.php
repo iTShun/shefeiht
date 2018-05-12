@@ -266,7 +266,7 @@ if($act == "")
 
    }
 
-   if($cf['cursection'] == 6)
+   if($cf['cursection'] == 6 || $cf['cursection'] == 1)
    {
     $data_arr = array("ship"=>1);
    }
