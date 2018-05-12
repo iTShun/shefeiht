@@ -690,6 +690,7 @@ if($act == "")
             <td><?php echo checktable_convert_status($arr["status"]);?></td>
             <td><?php echo $arr["checktime"];?></td>
             <td>
+             <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>&resourcestatus=<?php echo $curresourcestatus;?>&resourcequdao=<?php echo $curresourcequdao;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>&nbsp;&nbsp; 
              <a title="一键授权" href="?act=submit_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要一键授权吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">一键授权</i></a>
             </td>
           <?php } else if ($curresourcetype == 3) { ?>
@@ -1108,6 +1109,16 @@ if($act == "edit_superresource"){
 
           </tr>
 
+          <?php if ($curresourcetype == 2) { ?>
+          <tr >
+
+            <td width="20%"> 操作员：</td>
+
+            <td width="80%" ><textarea style="width:400px" class="textarea" name="control" id="control" cols="50" rows="5"></textarea></td>
+
+          </tr>
+          <?php } ?>
+
           <tr >
             <td width="20%"> 状态：</td>
           <td><select  name="status" id="status" class="select" >
@@ -1204,6 +1215,8 @@ if($act == "save_edit_superresource"){
 
   $desc = trim($_POST["desc"]);
 
+  $control = trim($_POST["control"]);
+
   $status = trim($_POST["status"]);
 
   $arr = array();
@@ -1231,20 +1244,29 @@ if($act == "save_edit_superresource"){
 
   if ($desc != "")
   {
-    if (isset($descs[$curresourcetype]))
+    if ($curresourcetype != 2)
     {
-      $descs[$curresourcetype] = $desc;
-      $desc = json_encode($descs);
-    }
-    else
-    {
-      if (!is_array($descs))
-        $descs = array();
+      if (isset($descs[$curresourcetype]))
+      {
+        $descs[$curresourcetype] = $desc;
+        $desc = json_encode($descs);
+      }
+      else
+      {
+        if (!is_array($descs))
+          $descs = array();
 
-      $descs[$curresourcetype] = $desc;
-      $desc = json_encode($descs);
+        $descs[$curresourcetype] = $desc;
+        $desc = json_encode($descs);
+      }
     }
+    
     $arr["desc"] = $desc;
+  }
+
+  if ($control != "" && $curresourcetype == 2)
+  {
+    $arr["control"] = $control;
   }
 
   if ($status != "")
