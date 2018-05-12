@@ -755,6 +755,7 @@ if($act == "")
             <td><?php echo $arr["addr"];?></td>
             <td><?php echo $arr["desc"];?></td>
             <td><?php echo $resourcestatus[$arr["status"]];?></td>
+            <td><?php echo $arr["idship"];?></td>
             <td><?php echo $arr["submittime"];?></td>
             <td>
               <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>&resourcestatus=<?php echo $curresourcestatus;?>&resourcequdao=<?php echo $curresourcequdao;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>
@@ -763,8 +764,10 @@ if($act == "")
             <td><?php echo $arr["name"];?></td>
             <td><?php echo $arr["phone"];?></td>
             <td><?php echo $arr["addr"];?></td>
+            <td><?php echo $arr["idship"];?></td>
             <td>
-            <a title="删除" href="?act=delete_ship_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要删除吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
+              <a title="编辑" href="?act=edit_superresource&id=<?php echo $arr["id"];?>&resourcetype=<?php echo $curresourcetype;?>" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>&nbsp;&nbsp; 
+              <a title="删除" href="?act=delete_ship_superresource&id=<?=$arr['id']?>" onclick="return confirm('确认要删除吗?')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
             </td>
           <?php } ?>
 
@@ -1080,6 +1083,16 @@ if($act == "edit_superresource"){
 
             <td colspan="2" align="center">编辑资源</td></tr>
 
+            <?php if ($curresourcetype == 4) { ?>
+              <tr >
+
+                <td width="20%"> 快递单号：</td>
+
+                <td width="80%" ><input style="width:300px" class="input-text" name="idship" type="text" id="idship" value=""> *</td>
+
+              </tr>
+            <?php }else{ ?>
+
             <?php if ($curresourcetype != 3) { ?>
           <tr >
 
@@ -1180,6 +1193,7 @@ if($act == "edit_superresource"){
             ?>
           </select></td>
           </tr>
+          <?php } ?>
 
           <tr >
 
@@ -1236,7 +1250,6 @@ if($act == "save_edit_superresource"){
     if (!is_array($b))
       exit;
 
-  $arr = $b[0];
   $descs = json_decode($b[0]['desc'], true);
 
   $name = trim($_POST["name"]);
@@ -1258,6 +1271,8 @@ if($act == "save_edit_superresource"){
   $control = trim($_POST["control"]);
 
   $status = trim($_POST["status"]);
+
+  $idship = trim($_POST["idship"]);
 
   $arr = array();
   
@@ -1341,6 +1356,9 @@ if($act == "save_edit_superresource"){
     }
   }
 
+  if($idship != "")
+    $arr["idship"] = $idship;
+
   $olddatas = $database->select("resource", "*", array("id"=>$id));
 
   $b=$database->select("resource", "*", array("id"=>$id));
@@ -1379,7 +1397,10 @@ if($act == "save_edit_superresource"){
 
   if ($b[0] && is_object($database->update("resource", $arr, array("id"=>$id))))
   {
-    $database->insert("resource_update", array("old"=>json_encode($olddatas[0]), "update"=>json_encode($arr), "admin"=>$_COOKIE['username']."-".$_COOKIE['name'], "time"=>date($cf['time_format'])));
+    if($curresourcetype != 4)
+    {
+       $database->insert("resource_update", array("old"=>json_encode($olddatas[0]), "update"=>json_encode($arr), "admin"=>$_COOKIE['username']."-".$_COOKIE['name'], "time"=>date($cf['time_format'])));
+    }
     echo "<script>alert('资源更新成功');</script>";
   }
   else
@@ -1536,7 +1557,18 @@ if($act == "delete_ship_superresource"){
 
   $id = $_GET['id'];
 
-  if ($database->has("resource", array("id"=>$id)) && is_object($database->update("resource", array("ship"=>0, "shiptime"=>date($cf['time_format'])),array("id"=>$id))))
+  $b=$database->select("resource", "*", array("id"=>$id));
+  if ($b[0])
+  {
+    if($b[0]['idship'] == "")
+    {
+      echo "<script>alert('请填写快递单号信息');</script>";
+      echo "<script>window.location.href='?'</script>";
+      exit;
+    }
+  }
+
+  if ($b[0] && is_object($database->update("resource", array("ship"=>0, "shiptime"=>date($cf['time_format'])),array("id"=>$id))))
     echo "<script>alert('资源删除成功');</script>";
   else
     echo "<script>alert('资源删除失败');</script>";
@@ -2934,6 +2966,7 @@ function resourcetype_convert_table_html($resourcetype)
                 <td width="7%"><strong>地址</strong></td>
                 <td width="7%"><strong>备注</strong></td>
                 <td width="7%"><strong>状态</strong></td>
+                <td width="7%"><strong>快递单号</strong></td>
                 <td width="7%"><strong>提交时间</strong></td>
                 <td width="9%"><strong>操作</strong></td>';
       break;
@@ -2942,6 +2975,7 @@ function resourcetype_convert_table_html($resourcetype)
       $html = '<td width="7%"><strong>姓名</strong></td>
                 <td width="7%"><strong>手机</strong></td>
                 <td width="7%"><strong>地址</strong></td>
+                <td width="7%"><strong>快递单号</strong></td>
                 <td width="9%"><strong>操作</strong></td>';
       break;
     
