@@ -81,6 +81,11 @@ require('../data/reader.php');
 
 				if($curcrew == "")
 					$curcrew = -1;
+				else
+				{
+					if($curgroup == -1)
+						$curcrew = -1;
+				} 
 
 				if ($start_date == "")
 				    $start_date = date("Y-m-d", mktime(0, 0, 0, date("m"), 1,date("Y"))); 
@@ -173,17 +178,20 @@ require('../data/reader.php');
 					组员：<span class="select-box inline">
   				<select  name="crew" id="crew" class="select" >
   					<?php
+					  	$gcurtemp = $database->select("admin", "*", array("id"=>$curgroup));
   						$curtemp = $database->select("admin", "*", array("id"=>$curcrew));
 
   						if ($curcrew == -1)
 				          echo '<option value="-1">全部</option>';
 				        else
 				        {
-				          if (isset($curtemp[0]) && $curcrew == $curtemp[0]['id'])
+				          if (isset($curtemp[0]) && $curcrew == $curtemp[0]['id'] && isset($gcurtemp[0]) && ($gcurtemp[0]['group'] == $curtemp[0]['group'] || strpos($curtemp[0]['group'], $gcurtemp[0]['group'].'-') !== false))
 				          {
 				            $arr = $curtemp[0];
 				            echo '<option value="'.$curcrew.'">'.$arr['group'].'-'.$arr['name'].'</option>';
-				          }
+						  }
+						  else
+							$curcrew = -1;
 				          echo '<option value="-1">全部</option>';
 				        }
 
